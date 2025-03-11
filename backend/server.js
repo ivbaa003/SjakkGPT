@@ -16,8 +16,6 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 
-console.log(process.env.OPENAI_API_KEY)
-
 app.post("/api", async (req, res) => {
 	const { message } = req.body;
     previousMessanges.push({ role: "user", content: message })
