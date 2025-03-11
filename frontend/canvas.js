@@ -301,17 +301,10 @@ function game() {
     
     whitePieces.forEach((element) => {
         if(element.alive) {ctx.drawImage(images[element.imageID],    52*element.x+5, 52*element.y+5,     40,40)}
-        
-
-        //ctx.fillStyle = "rgb(255,0,0)";
-        //ctx.fillRect(52*element.x+12, 52*element.y+12, 25, 25);   
     });
 
     blackPieces.forEach((element) => {
         if(element.alive) {ctx.drawImage(images[element.imageID],    52*element.x+5, 52*element.y+5,     40,40)}
-
-        //ctx.fillStyle = "rgb(0,0,255)";
-        //ctx.fillRect(52*element.x+12, 52*element.y+12, 25, 25);   
     });
 
     ctx.strokeStyle = "red";
@@ -320,10 +313,7 @@ function game() {
     ctx.lineTo(lineTo.x*52+26,     lineTo.y*52+26);
     ctx.closePath()
 
-    // Draw the Path
     ctx.stroke();
-
-    //console.log(mousee)
 
 
 
