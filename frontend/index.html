@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>ChatGPT sjakk!</title>
+</head>
+
+<link rel="stylesheet" href="style.css">
+<script src="script.js"></script>
+<script src="canvas.js"></script>
+
+<body>
+<p>ChessGPT!</p>
+
+<div style="overflow: hidden;"> 
+    <div style="width: 432px; float: left;">
+        <canvas id="canvas" width="416" height="416"
+        style="background-color:#d6d6d6f5; image-rendering: pixelated; image-rendering: crisp-edges;
+">
+        </canvas>
+    </div>
+    
+    <div style="width: 500px; margin-left: 432px;">
+        <p> ChatGPT says:</p>
+        <div style="border:solid; padding: 10px">
+            <span id="ChatGPT-text"> TEXT TEXT TEXT </span>
+        </div>
+        
+    </div>
+</div>
+
+
+
+
+</body>
+
+<script> 
+    framerate = 60
+    images = []
+    
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    
+    keysdown = [false,false,false,false]
+    
+    tileplacing = 0
+    
+    window.addEventListener('keydown', function (e) {    
+        //console.log(e.key)
+        keysdown = (keysdown || []);
+        if(e.key == "w") {keysdown[0] = true;}
+        if(e.key == "a") {keysdown[1] = true;}
+        if(e.key == "s") {keysdown[2] = true;}
+        if(e.key == "d") {keysdown[3] = true;}
+    })
+    
+    window.addEventListener('keyup', function (e) {
+        if(e.key == "w") {keysdown[0] = false;}
+        if(e.key == "a") {keysdown[1] = false;}
+        if(e.key == "s") {keysdown[2] = false;}
+        if(e.key == "d") {keysdown[3] = false;}
+    })
+    
+    window.addEventListener('mousemove', function (e) {
+        mousee.x = e.offsetX
+        mousee.y = e.offsetY
+    })
+    
+    window.addEventListener('click', function (e) {
+        mousee.click()
+    })
+    
+    window.addEventListener("contextmenu", (e) => {
+        e.preventDefault()
+        mousee.rightclick()
+    });
+    
+    function newImage(image) {
+	    let img = new Image();
+	    img.src = image;
+	    return(img)
+    }
+
+    ctx.imageSmoothingEnabled = false
+
+    
+    images = []
+
+    images.push(newImage("assets/pawn_white.png"))
+    images.push(newImage("assets/rook_white.png"))
+    images.push(newImage("assets/knight_white.png"))
+    images.push(newImage("assets/bishop_white.png"))
+    images.push(newImage("assets/queen_white.png"))
+    images.push(newImage("assets/king_white.png"))
+
+    images.push(newImage("assets/pawn_black.png"))
+    images.push(newImage("assets/rook_black.png"))
+    images.push(newImage("assets/knight_black.png"))
+    images.push(newImage("assets/bishop_black.png"))
+    images.push(newImage("assets/queen_black.png"))
+    images.push(newImage("assets/king_black.png"))
+
+    setup()
+    setInterval(game, 1000/framerate);
+    
+    </script>
+
+
+
+
+
+
+</html> 
