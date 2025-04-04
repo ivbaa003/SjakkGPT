@@ -3,13 +3,109 @@ function moveToString(pieceUsing, oldX, oldY, newX, newY, capturedType) {
     if(capturedType !== "") {stringMaking = stringMaking + " (Captured your " + capturedType + "!)"}
      
     return stringMaking
+    
 }
 
 let waitingForAI = true
+let readyForNextTurn = true
 let chatGPTMove = "a"
 
 
-function stringToMove(stringUsing) {
+
+let gameStarted = false
+
+function startTheGame() {
+    if(readyForNextTurn) {
+        gameType = true
+            
+        const chatbot2msg = document.getElementById("chatbot2msg").value
+        let chatbot1msg
+        if(gameType) {
+            chatbot1msg = document.getElementById("chatbot1msg").value
+        }
+
+        else{
+            chatbot1msg = "aaaaaa"
+        }
+
+        if(document.getElementById("pvb").checked) {
+            gameType = false
+        }
+
+        else if(document.getElementById("bvb").checked) {
+            gameType = true
+        }
+        
+
+        whitePieces = [
+            new piece(0,"Pawn",       0,1),
+            new piece(0,"Pawn",       1,1),
+            new piece(0,"Pawn",       2,1),
+            new piece(0,"Pawn",       3,1),
+            new piece(0,"Pawn",       4,1),
+            new piece(0,"Pawn",       5,1),
+            new piece(0,"Pawn",       6,1),
+            new piece(0,"Pawn",       7,1),
+            
+            new piece(1,"Rook",       0,0),
+            new piece(2,"Knight",     1,0),
+            new piece(3,"Bishop",     2,0),
+            new piece(4,"Queen",      3,0),
+            new piece(5,"King",       4,0),
+            new piece(3,"Bishop",     5,0),
+            new piece(2,"Knight",     6,0),
+            new piece(1,"Rook",       7,0),
+        ]
+        
+        blackPieces = [
+            new piece(0,"Pawn",       0,6),
+            new piece(0,"Pawn",       1,6),
+            new piece(0,"Pawn",       2,6),
+            new piece(0,"Pawn",       3,6),
+            new piece(0,"Pawn",       4,6),
+            new piece(0,"Pawn",       5,6),
+            new piece(0,"Pawn",       6,6),
+            new piece(0,"Pawn",       7,6),
+            
+            new piece(1,"Rook",       0,7),
+            new piece(2,"Knight",     1,7),
+            new piece(3,"Bishop",     2,7),
+            new piece(4,"Queen",      3,7),
+            new piece(5,"King",       4,7),
+            new piece(3,"Bishop",     5,7),
+            new piece(2,"Knight",     6,7),
+            new piece(1,"Rook",       7,7),
+        ]
+
+        startGame(gameType, chatbot1msg, chatbot2msg) //true = bot vs bot,          false = bot vs player
+    }
+    render()
+}
+
+function nextTurn(bypass) {
+    if(gameStarted && readyForNextTurn && (gameType || bypass)) {
+        console.log("Next turn!")
+        readyForNextTurn = false
+        if(!turn) {
+            waitingForAI = true
+            getChatGPTResponse("chatbot 1","a")
+        }   
+        
+        else if(turn) {
+            waitingForAI = true
+            getChatGPTResponse("chatbot 2","a")
+        }  
+    }
+    
+    else {console.log("Not ready for the next turn.")}
+    
+}
+
+
+
+let gameType = false //false = Player vs. AI            true = AI vs AI
+
+function stringToMove(stringUsing, teamMoving, teamDefending) {
     let firstSquareBracket = 0
     let secondSquareBracket = 0
 
@@ -30,7 +126,6 @@ function stringToMove(stringUsing) {
     }
 
     stringChecking = stringChecking.slice(firstSquareBracket+1, secondSquareBracket)
-    //console.log(stringChecking.slice(0, 2))
     const firstTwoLetters = stringChecking.slice(0, 2)
 
     let pieceTypeNumber = 0
@@ -41,13 +136,9 @@ function stringToMove(stringUsing) {
     else if(firstTwoLetters == "Bi") {pieceTypeMoving = "Bishop";   pieceTypeLength = 6;    pieceTypeNumber = 3}
     else if(firstTwoLetters == "Qu") {pieceTypeMoving = "Queen";    pieceTypeLength = 5;    pieceTypeNumber = 4}
     else if(firstTwoLetters == "Ki") {pieceTypeMoving = "King";     pieceTypeLength = 4;    pieceTypeNumber = 5}
-    
-    //console.log(pieceTypeMoving)
 
     stringChecking = stringChecking.slice(pieceTypeLength+1, stringChecking.length)
-    //console.log(stringChecking)
 
-    
 
     const realOldX = letters.indexOf(stringChecking[0])
     const realOldY = Number(stringChecking[1])-1
@@ -55,24 +146,24 @@ function stringToMove(stringUsing) {
     const realNewX = letters.indexOf(stringChecking[6])
     const realNewY = Number(stringChecking[7])-1
 
-    //console.log(realOldX, realOldY)
-    //console.log(realNewX, realNewY)
 
     let foundPiece = false
 
-    whitePieces.forEach((element) => {
+    teamMoving.forEach((element) => {
         if(element.nameType == pieceTypeMoving && element.x == realOldX && element.y == realOldY) {
+            console.log("Piece found! Moving.")
             foundPiece = true
             found = true
             element.x = realNewX
             element.y = realNewY
-            turn = true
-            //console.log("turn: " + element.y)
+
+            if(turn) {turn = false}
+            else     {turn = true}
 
             lineFrom.x = realOldX;  lineFrom.y = realOldY
             lineTo.x = realNewX;    lineTo.y = realNewY
 
-            blackPieces.forEach((blackElement) => {
+            teamDefending.forEach((blackElement) => {
                 if(element.x == blackElement.x &&        element.y == blackElement.y) {
                     blackElement.alive = false
                     blackElement.x = 9
@@ -80,31 +171,34 @@ function stringToMove(stringUsing) {
                 }
             });
 
-            whitePieces.forEach((whiteElement) => {
+            teamMoving.forEach((whiteElement) => {
                 if(element.x == whiteElement.x &&        element.y == whiteElement.y        && whiteElement !== element) {
                     whiteElement.alive = false
                     whiteElement.x = 9
                     whiteElement.y = 30
                 }
             });
-
-            
                 
         }
         
     });
 
-    
+    console.log(teamMoving.length)
+
     if(!foundPiece) {
-        whitePieces.push(new piece(pieceTypeNumber,pieceTypeMoving, realNewX, realNewY))
+        console.log("Couldn't find the piece, creating a new one.")
+        console.log(teamMoving)
+
+        teamMoving.push(new piece(pieceTypeNumber,pieceTypeMoving, realNewX, realNewY))
 
         lineFrom.x = realOldX;  lineFrom.y = realOldY
         lineTo.x = realNewX;    lineTo.y = realNewY
 
-        turn = true
+        if(turn) {turn = false}
+        else     {turn = true}
 
-        blackPieces.forEach((blackElement) => {
-            if(whitePieces[whitePieces.length-1].x == blackElement.x &&        whitePieces[whitePieces.length-1].y == blackElement.y) {
+        teamDefending.forEach((blackElement) => {
+            if(teamMoving[teamMoving.length-1].x == blackElement.x &&        teamMoving[teamMoving.length-1].y == blackElement.y) {
                 blackElement.alive = false
                 
                 blackElement.x = 9
@@ -112,6 +206,8 @@ function stringToMove(stringUsing) {
             }
         });
     }
+
+    readyForNextTurn = true
     
 }
 
@@ -126,43 +222,50 @@ let mousee = {
 
 	click: function() {
 
-        
+        mousee.boardX = (Math.floor(mousee.x/52))
+        mousee.boardY = (Math.floor(mousee.y/52))
 
-        if(turn) {
+        if(gameType == false && turn && mousee.x < 415 && mousee.x > 1 && mousee.y < 415 && mousee.y > 1) {
             if(pieceSelected) {
-                
-                let oldX = blackPieces[pieceMoving].x
-                let oldY = blackPieces[pieceMoving].y
 
-                let newX = mousee.boardX
-                let newY = mousee.boardY
-
-                blackPieces[pieceMoving].x = newX
-                blackPieces[pieceMoving].y = newY 
-
-                
-                //getChatGPTResponse(whiteMoveString) //'[Knight g1 to f3] \n\nYour move!'
-                
-                waitingForAI = true
-
-                
-                pieceSelected = false
-                turn = false
-                let capturedType = ""
-
-                for (let index = 0; index < whitePieces.length; index++) {
-                    if(whitePieces[index].x == blackPieces[pieceMoving].x &&        whitePieces[index].y == blackPieces[pieceMoving].y) {
-                        whitePieces[index].alive = false
-                        
-                        whitePieces[index].x = 9
-                        whitePieces[index].y = 30
-                        capturedType = whitePieces[index].nameType
-                    }
+                if(blackPieces[pieceMoving].x == mousee.boardX &&        blackPieces[pieceMoving].y == mousee.boardY) {
+                    pieceSelected = false
                 }
 
-                whiteMoveString = moveToString(blackPieces[pieceMoving].nameType, oldX, oldY, newX, newY, capturedType)
-                console.log(whiteMoveString)
-                getChatGPTResponse(whiteMoveString)
+                else {
+                    let oldX = blackPieces[pieceMoving].x
+                    let oldY = blackPieces[pieceMoving].y
+        
+                    let newX = mousee.boardX
+                    let newY = mousee.boardY
+    
+                    blackPieces[pieceMoving].x = newX
+                    blackPieces[pieceMoving].y = newY 
+        
+                    
+                    waitingForAI = true
+        
+                    
+                    pieceSelected = false
+                    turn = false
+                    let capturedType = ""
+        
+                    for (let index = 0; index < whitePieces.length; index++) {
+                        if(whitePieces[index].x == blackPieces[pieceMoving].x &&        whitePieces[index].y == blackPieces[pieceMoving].y) {
+                            whitePieces[index].alive = false
+                                
+                            whitePieces[index].x = 9
+                            whitePieces[index].y = 30
+                            capturedType = whitePieces[index].nameType
+                        }
+                    }
+        
+                    whiteMoveString = moveToString(blackPieces[pieceMoving].nameType, oldX, oldY, newX, newY, capturedType)
+                    console.log(whiteMoveString)
+                    getChatGPTResponse("human", whiteMoveString)
+    
+                }
+                    
             }
             else {
                 
@@ -173,23 +276,24 @@ let mousee = {
                         
                     }
                     
-                    
                 }
-                //console.log(pieceMoving, pieceSelected)
                 
             }
+            
         }
+        
+        render()
 	}
 }
 
 
-let turn = true // false = white's turn,         true = black's turn
+let turn = false // false = white's turn,         true = black's turn
 let pieceSelected = false
 let pieceMoving = 0
 let whiteMoveString = "Pawn a1 to a3"
 
-let lineFrom =  {x:4, y:1}
-let lineTo =    {x:4, y:3}
+let lineFrom =  {x:0, y:0}
+let lineTo =    {x:0, y:0}
 
 
 function piece(imageID, nameType, x, y) {
@@ -205,7 +309,7 @@ let whitePieces = [
     new piece(0,"Pawn",       1,1),
     new piece(0,"Pawn",       2,1),
     new piece(0,"Pawn",       3,1),
-    new piece(0,"Pawn",       4,3),
+    new piece(0,"Pawn",       4,1),
     new piece(0,"Pawn",       5,1),
     new piece(0,"Pawn",       6,1),
     new piece(0,"Pawn",       7,1),
@@ -221,23 +325,23 @@ let whitePieces = [
 ]
 
 let blackPieces = [
-    new piece(6,"Pawn",       0,6),
-    new piece(6,"Pawn",       1,6),
-    new piece(6,"Pawn",       2,6),
-    new piece(6,"Pawn",       3,6),
-    new piece(6,"Pawn",       4,6),
-    new piece(6,"Pawn",       5,6),
-    new piece(6,"Pawn",       6,6),
-    new piece(6,"Pawn",       7,6),
+    new piece(0,"Pawn",       0,6),
+    new piece(0,"Pawn",       1,6),
+    new piece(0,"Pawn",       2,6),
+    new piece(0,"Pawn",       3,6),
+    new piece(0,"Pawn",       4,6),
+    new piece(0,"Pawn",       5,6),
+    new piece(0,"Pawn",       6,6),
+    new piece(0,"Pawn",       7,6),
 
-    new piece(7,"Rook",       0,7),
-    new piece(8,"Knight",     1,7),
-    new piece(9,"Bishop",     2,7),
-    new piece(10,"Queen",     3,7),
-    new piece(11,"King",      4,7),
-    new piece(9,"Bishop",     5,7),
-    new piece(8,"Knight",     6,7),
-    new piece(7,"Rook",       7,7),
+    new piece(1,"Rook",       0,7),
+    new piece(2,"Knight",     1,7),
+    new piece(3,"Bishop",     2,7),
+    new piece(4,"Queen",      3,7),
+    new piece(5,"King",       4,7),
+    new piece(3,"Bishop",     5,7),
+    new piece(2,"Knight",     6,7),
+    new piece(1,"Rook",       7,7),
 ]
 
 
@@ -259,22 +363,16 @@ const letters = [
        
 ]
 
-const dataToSend = { name: "Alice", age: 25 };
-
 function setup() {	
-    
+    render()
 }
 
-
-
-function game() {
-	ctx.fillStyle = "#000000";
+function render() {
+    ctx.fillStyle = "#000000";
 	ctx.fillRect(0, 0, 416, 416);
 
-    mousee.boardX = (Math.floor(mousee.x/52))
-    mousee.boardY = (Math.floor(mousee.y/52))
 
-
+    console.log("RENDERING BOARD!")
     for (let generatingY = 0; generatingY < 8; generatingY++) {
         for (let generatingX = 0; generatingX < 8; generatingX++) {
             if((generatingY+generatingX)%2 == 0) {
@@ -293,18 +391,12 @@ function game() {
         ctx.fillRect(52*blackPieces[pieceMoving].x, 52*blackPieces[pieceMoving].y, 51, 51);    
     }
 
-    else if (!turn && !waitingForAI){
-        document.getElementById("ChatGPT-text").innerHTML = chatGPTMove
-        stringToMove(chatGPTMove)
-    }
-
-    
     whitePieces.forEach((element) => {
         if(element.alive) {ctx.drawImage(images[element.imageID],    52*element.x+5, 52*element.y+5,     40,40)}
     });
 
     blackPieces.forEach((element) => {
-        if(element.alive) {ctx.drawImage(images[element.imageID],    52*element.x+5, 52*element.y+5,     40,40)}
+        if(element.alive) {ctx.drawImage(images[element.imageID+6],    52*element.x+5, 52*element.y+5,     40,40)}
     });
 
     ctx.strokeStyle = "red";
@@ -314,8 +406,4 @@ function game() {
     ctx.closePath()
 
     ctx.stroke();
-
-
-
-
 }

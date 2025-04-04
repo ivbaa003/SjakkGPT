@@ -23,14 +23,41 @@
     <div style="width: 500px; margin-left: 432px;">
         <p> ChatGPT says:</p>
         <div style="border:solid; padding: 10px">
-            <span id="ChatGPT-text"> Sounds good! I'll start. 
-                [Pawn e2 to e4] 
-                Your move! 
+            <span id="ChatGPT-text">    
             </span>
         </div>
         
+        <div>
+            <form>
+                <br>
+                <input type="radio" id="pvb" name="bot vs player" value="player vs bot">
+                <label for="bvp">Play against bot</label><br>
+
+                <input type="radio" id="bvb" name="bot vs player" value="bot vs bot">
+                <label for="bvb">Watch 2 bots play against eachother</label><br>
+
+                <br>
+                <input id = "chatbot1msg" type="text" size = "100" value="">
+                <label for="chatbot1msg">Message for bot 1 (black) (only in bot vs bot mode)</label>
+                <br>
+                <br>
+                <input id = "chatbot2msg" type="text" size = "100" value="">
+                <label for="chatbot2msg">Message for bot 2 (white)</label>
+                <br>
+
+              </form>
+
+
+            
+            <br>
+            <button onclick="startTheGame()"></buttononclick> Start </button>
+            <br>
+            <br>
+            <button onclick="nextTurn(false)"></buttononclick> Next turn </button>
+        </div>
     </div>
 </div>
+
 
 
 
@@ -38,7 +65,7 @@
 </body>
 
 <script> 
-    framerate = 60
+    framerate = 30
     images = []
     
     var canvas = document.getElementById("canvas");
@@ -104,7 +131,6 @@
     images.push(newImage("assets/king_black.png"))
 
     setup()
-    setInterval(game, 1000/framerate);
     
     </script>
 
